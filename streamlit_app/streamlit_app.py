@@ -13,7 +13,7 @@ sns.set()
 st.set_page_config(layout="wide")
 ### Uplod de data
 #TO-Do: use cleaned data, final data
-data = pd.read_csv('./datos_procesados/data_final.csv')
+data = pd.read_csv('data_final.csv')
 data = data[data['desc_dpto']=='Rosario'].copy()
 
 # Data manipulation
