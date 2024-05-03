@@ -9,6 +9,7 @@ from shapely import Point
 import plotly.express as px
 import seaborn as sns
 import numpy as np
+import re
 
 sns.set()
 
@@ -348,3 +349,34 @@ columns[0].plotly_chart(fig)
 
 
 # SINIESTROS POR TIPO DE CALZADA
+
+st.subheader('Segmentación por tipo de calzada')
+columns = st.columns(2)
+
+data['desc_tipo_calzada'] = data['desc_tipo_calzada'].apply(lambda x: re.sub(r'\bhormigón\b', 'Hormigón', x, flags=re.IGNORECASE))
+calzada_separada = data['desc_tipo_calzada'].str.get_dummies(sep=',')
+calzada_counts = calzada_separada.sum().sort_values(ascending=False)
+
+# barras
+fig = px.bar(x=calzada_counts.index, y=calzada_counts.values,
+             labels={'x': 'Tipo de calzada', 'y': 'Cantidad de siniestros'},
+             title='Siniestros por tipo de calzada')
+for i in range(len(calzada_counts)):
+    fig.add_annotation(x=calzada_counts.index[i],
+                       y=calzada_counts.values[i],
+                       text=str(calzada_counts.values[i]), 
+                       showarrow=False, 
+                       font=dict(size=10),
+                       yshift=13)
+
+fig.update_layout(title_x=0.40)
+columns[0].plotly_chart(fig)
+
+# grafico torta con porcentajes
+porcentajes = (calzada_counts / calzada_counts.sum()) * 100
+fig = px.pie(names=porcentajes.index, values=porcentajes.values,
+             title='Porcentaje de siniestros por tipo de calzada')
+fig.update_layout(title_x=0.40)
+columns[1].plotly_chart(fig)
+
+
