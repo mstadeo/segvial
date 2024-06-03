@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+import numpy as np
 
 st.set_page_config(page_title="Calidad de datos", page_icon="📈", layout="wide")
 st.title("📈 Calidad de datos")
@@ -67,7 +68,7 @@ descripciones= {'anio_acci': 'Año en que ocurrió el siniestro.',
                 'nro_acci': 'Contador de siniestros.',
                 'fecha': 'Fecha exacta en que ocurrió el siniestro.',
                 'desc_dia': 'Día de la semana en que ocurrió el siniestro.',
-                'fecha_aprox': 'Fecha aproximada en que ocurrió el siniestro. (???)', #ver
+                'fecha_aprox': 'Fecha aproximada en que ocurrió el siniestro. (???)', 
                 'hora_aprox': 'Hora aproximada en que ocurrió el siniestro.',
                 'desc_ruta': 'Ruta en que ocurrió el siniestro.',
                 'km': 'Número de kilómetro en que ocurrió el siniestro.',
@@ -80,10 +81,10 @@ descripciones= {'anio_acci': 'Año en que ocurrió el siniestro.',
                 'heridos_gravisimos': 'Cantidad de heridos gravísimos participantes en el siniestro.',
                 'ilesos': 'Cantidad de ilesos participantes en el siniestro.', 
                 'fallecidos': 'Cantidad de fallecidos en el siniestro.',
-                'sin_datos':  'Cantidad de ??', #ver
+                'sin_datos':  'Cantidad de personas involucradas en el siniestro que no se pudieron catalogar en las anteriores (ilesos, heridos, fallecidos).', 
                 'posicion_XY': 'Coordenadas donde ocurrió el siniestro.',
                 'desc_tipo_via': 'Tipo de vía donde ocurrió el siniestro.',
-                'desc_ruta_ori': '??', #ver
+                'desc_ruta_ori': 'Descripción de la ruta de origen.', 
                 'desc_loc': 'Municipio en que ocurrió el siniestro.',
                 'desc_dpto': 'Departamento en que ocurrió el siniestro.',
                 'desc_tipo_calzada': 'Tipo de calzada en que ocurrió el siniestro.',
@@ -91,9 +92,9 @@ descripciones= {'anio_acci': 'Año en que ocurrió el siniestro.',
                 'desc_unidad_regional': 'Unidad regional en que ocurrió el siniestro.',
                 'desc_lugar_calzada': 'Lugar de la calzada en que ocurrió el siniestro.',
                 'desc_zona': 'Tipo de zona en que ocurrió el siniestro.', 
-                'desc_prioridad': '??', #ver
+                'desc_prioridad': 'Descripción de prioridad, si existiera.', 
                 'desc_estado_semaforo': 'Estado del semáforo al momento del siniestro.',
-                'desc_lugar_via': '??? Lugar de la vía en que ocurrió el siniestro.', #ver
+                'desc_lugar_via': 'Lugar de la vía en que ocurrió el siniestro.', 
                 'desc_estado_via': 'Estado de la vía al momento del siniestro.', 
                 'desc_estado_visibilidad': 'Estado de visibilidad de la vía al momento del siniestro.', 
                 'desc_luminosidad': 'Estado de luminosidad al momento del siniestro.', 
@@ -101,10 +102,10 @@ descripciones= {'anio_acci': 'Año en que ocurrió el siniestro.',
                 'desc_tipo_colision': 'Tipo de colisión involucrada en el siniestro.', 
                 'desc_tipo_atropello': 'Tipo de atropello involucrado en el siniestro.',
                 'desc_tipo_hecho': 'Tipo de siniestro.',
-                'desc_pres_calzada': '??',  #ver
+                'desc_pres_calzada': 'Estado de la calzada al momento del siniestro.',
                 'desc_senializacion': 'Estado de la señalización al momento del siniestro.', 
-                'desc_separacion_via': '??', #ver
-                'desc_restriccion': '??'} #ver
+                'desc_separacion_via': 'Tipo de separación de la vía, si existiera.', 
+                'desc_restriccion': 'Descripción de la restricción involucrada en el siniestro, si existiera. Si tiene separadores físicos o no, imposibilidad de movimientos, etc.'} 
 
 columns = st.columns(2)
 if columna_seleccionada:
@@ -218,20 +219,10 @@ if columna_seleccionada:
                     ruta_seleccionada = st.selectbox("Selecciona una ruta para visualizar", rutas)
                     data_filtrada = data_filtrados[data_filtrados['desc_ruta'] == ruta_seleccionada]
                     if not data_filtrada.empty:
-
                         fig_hist = px.histogram(data_filtrada, x='km', nbins=10, title=f'Distribución de Siniestros por Kilómetro en {ruta_seleccionada}')
-                        fig_hist.update_layout(xaxis_title='Kilómetro', yaxis_title='Cantidad de Siniestros')
-                        hist_data = data_filtrada['km'].value_counts().sort_index()
-                        for bin in hist_data.index:
-                            fig_hist.add_annotation(
-                                x=bin, 
-                                y=hist_data[bin], 
-                                text=str(hist_data[bin]), 
-                                showarrow=False,
-                                yshift=10
-                            )
-                        fig_hist.update_traces(textposition='outside')
-                        st.plotly_chart(fig_hist,  use_container_width=True)
+                        fig_hist.update_layout(title_x=0.25, xaxis_title='Kilómetro', yaxis_title='Cantidad de Siniestros')
+                        st.plotly_chart(fig_hist, use_container_width=True)
+
                     else:
                         st.write("No hay datos para la ruta seleccionada.")
 
@@ -239,7 +230,7 @@ if columna_seleccionada:
                     # para el resto de las columnas numéricas, un histograma
                     fig = px.histogram(data_filtrados, x=columna_seleccionada, 
                                     title=f'Cantidad de valores únicos para el año {anio_seleccionado}', 
-                                    text_auto=True)
+                                    text_auto=True, range_y=[0, max(data_filtrados[columna_seleccionada])+500])
                     fig.update_layout(title_x=0.30, yaxis_title='Cantidad de valores', showlegend=False)
                     fig.update_traces(textposition='outside')
                     fig.update_xaxes(tickmode='linear', dtick=1)
@@ -252,7 +243,7 @@ if columna_seleccionada:
                     
                     fig = px.bar(value_counts, x=columna_seleccionada, y='count', 
                                 title=f'Cantidad de valores únicos para el año {anio_seleccionado}', 
-                                text='count')
+                                text='count', range_y=[0, max(value_counts['count'])+500])
                     fig.update_layout(title_x=0.30, yaxis_title='Cantidad de valores', showlegend=False)
                     fig.update_traces(textposition='outside')
                     st.plotly_chart(fig, use_container_width=True)
