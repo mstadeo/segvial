@@ -10,13 +10,15 @@ import plotly.express as px
 import seaborn as sns
 import numpy as np
 import re
+
 import matplotlib.pyplot as plt 
+
 
 sns.set()
 
 st.set_page_config(layout="wide", page_icon="📊")
 ### Uplod de data 
-#TO-Do: use cleaned data, final data
+
 data_total = pd.read_csv("siniestros_geocod_rosario.csv")
 data = data_total[data_total['anio_acci'] != 2011] # filtro el único siniestro de 2011 infiltrado en el csv del 2012
 
@@ -28,6 +30,7 @@ if boton_sin_ilesos:
 
 # Data manipulation
 data['fecha_date'] = data['fecha'].apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%d'))
+
 data['geometry'] = data.apply(lambda row: Point(row['lon'], row['lat']), axis = 1)
 gdf = gpd.GeoDataFrame(data, geometry = data.geometry, crs = 'EPSG:4326')
 
@@ -63,15 +66,19 @@ columns = st.columns(2) #cantidad de columnas
 fig = px.line(x = anios_interes.index, y = anios_interes.siniestros_por_anio, 
                  labels = {'x': 'Año', 'y': 'Cantidad de siniestros'}, title='Siniestros por año',
                  markers=True)
+
 fig.update_layout(title_x=0.35, width=700)
+
 columns[0].plotly_chart(fig)
 
 fig = px.line(x = data.groupby('fecha_date').size().index, y = data.groupby('fecha_date').size(), 
                  labels = {'x': 'Mes', 'y': 'Cantidad de siniestros'}, title='Siniestros por mes')
+
 fig.update_layout(title_x=0.35, width=700)
 columns[1].plotly_chart(fig)
 
 # FILA 2 --> TOTAL INVOLUCRADOS POR AÑO E INVOLUCRADOS SEGÚN TIPO DE GRAVEDAD (con botón para filtrar heridos leves)
+
 
 st.subheader("Involucrados")
 columns = st.columns(2)
@@ -83,6 +90,7 @@ fig_involucrados.update_layout(title_x=0.35, width=700)
 fig_involucrados.update_traces(textposition='outside')
 columns[0].text("\n\n")
 columns[0].text("\n")
+
 columns[0].plotly_chart(fig_involucrados)
 
 boton_sin_leves = columns[1].checkbox("Quitar heridos leves")
@@ -104,6 +112,7 @@ else:
                                                     'Heridos graves' if t.name == 'heridos_graves' else
                                                     'Heridos gravísimos' if t.name == 'heridos_gravisimos' else
                                                     'Fallecidos'))
+
 columns[1].plotly_chart(fig_gravedad, use_container_width=True)
 
 
@@ -156,7 +165,9 @@ fig = px.histogram(data, x='turno', title='Siniestros por turno',
                    labels={'turno': 'Turno', 'count': 'Cantidad de Siniestros'},
                    category_orders={'turno': ['Desconocido', 'Mañana', 'Tarde', 'Noche']})
 
+
 fig.update_layout(yaxis_title='Cantidad de siniestros', title_x=0.35, width=700) 
+
 
 for turno, count in turno_counts.items():
     fig.add_annotation(x=turno, y=count, text=str(count), showarrow=False,
@@ -190,6 +201,7 @@ for i, valor in enumerate(valores):
         xshift=16
     )
 fig.update_layout(showlegend=False, coloraxis_showscale=False, title_x=0.35)
+
 columns[1].plotly_chart(fig, use_container_width=True)
 
 # FILA 4 --> MAPA LOCALIZACIÓN GEOGRÁFICA DE SINIESTROS
@@ -224,6 +236,7 @@ conteo_transportes = transportes.sum()  # sumo esos dummies
 porcentaje_transportes = (conteo_transportes / len(data)) * 100   # calculo porcentaje 
 
 # sumo los porcentajes de los transportes y camiones
+
 suma_transportes = porcentaje_transportes[['Transporte de Pasajeros','Transporte de Pasajeros (H/ 8 asientos)','Transporte de Pasajeros Larga Distancia (> 8 asientos)',
                                                     'Transporte de Pasajeros Larga Distancia (Doble Piso)','Transporte de Pasajeros Larga Distancia (Piso  y  1/2)','Transporte de Pasajeros Urbano (> 8 asientos)']].sum()
 suma_camiones = porcentaje_transportes[['Camión','Camión Chasis','Camión c / Acoplado','Camión c / Semirremolque']].sum()
@@ -241,7 +254,9 @@ columns = st.columns(2)
 porcentaje_mayor_a_1 = porcentaje_transportes[porcentaje_transportes > 1].sort_values(ascending=True)
 # gráfico solo para los porcentajes mayores al 1%
 fig = px.bar(porcentaje_mayor_a_1, orientation='h', labels={'y': 'Modo', 'x': 'Porcentaje de siniestros'}, 
+
              title='Participación modal en la totalidad de siniestros')
+
 fig.update_layout(height=500, yaxis_title='Modo', xaxis_title='Porcentaje de siniestros',  title_x=0.35, showlegend=False) 
 for i, percentage in enumerate(porcentaje_mayor_a_1.values):
     fig.add_annotation(
@@ -252,16 +267,21 @@ for i, percentage in enumerate(porcentaje_mayor_a_1.values):
         font=dict(size=12),
         xshift=30 
     )
+
 columns[0].plotly_chart(fig, use_container_width=True)
 
 # para los modos que alcanzan menos del 1%, los escribo en formato texto con HTML
+
 porcentaje_menor_a_1 = porcentaje_transportes[porcentaje_transportes <= 1].sort_values(ascending=False)
 
 columns[1].markdown("<h6 style='text-align: left; margin-top: 100px;  margin-left: 200px;'>Modos que no alcanzan el 1%:</h6>", unsafe_allow_html=True)
 var_html = ""  # inicializo el texto HTML
 for transporte, porcentaje in porcentaje_menor_a_1.items():
+
     var_html += f"<p style='text-align: left; margin-left: 200px;'>- {transporte}: {porcentaje:.2f}% </p>"  # agrego el texto HTML con margen izquierdo
+
 columns[1].markdown(var_html, unsafe_allow_html=True)
+
 
 
 
@@ -304,6 +324,7 @@ columns[1].markdown(var_html, unsafe_allow_html=True)
 
 # FILA 7 --> SINIESTROS SEGUN DIA DE LA SEMANA (gráfico de barras y torta para porcentajes dia semana - fin de semana y barras para toda la semana)
 
+
 st.subheader('Siniestros según día')
 columns = st.columns(2)
 
@@ -330,16 +351,20 @@ for i, valor in enumerate(dias_total['Cantidad de siniestros']):
         font=dict(size=12),
         yshift=13  
     )
+
 columns[0].plotly_chart(fig, use_container_width=True)
+
 
 # GRAFICO TORTA DIA SEMANA VS FIN DE SEMANA
 fig = px.pie(dias_total, values='Cantidad de siniestros', names='Tipo de día',
              title='Porcentaje de siniestros por tipo de día')
 fig.update_layout(title_x=0.35)
+
 columns[1].plotly_chart(fig, use_container_width=True)
 
 
 # FILA 8 --> GRÁFICO DE BARRAS SINIESTROS POR DÍA
+
 orden_dias = ['Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado', 'Domingo']
 fig = px.bar(x=conteo_dias.index, y=conteo_dias.values,
              labels={'y': 'Cantidad de siniestros', 'x': 'Día'},
@@ -350,10 +375,12 @@ for i, val in enumerate(conteo_dias.values):
     fig.add_annotation(x=conteo_dias.index[i], y=val, text=str(val), showarrow=False,
                        yshift=13)
 fig.update_layout(title_x=0.40)
+
 st.plotly_chart(fig)
 
 
 # FILA 9 --> SINIESTROS POR TIPO DE CALZADA
+
 
 st.subheader('Segmentación por tipo de calzada')
 columns = st.columns(2)
@@ -362,7 +389,9 @@ data['desc_tipo_calzada'] = data['desc_tipo_calzada'].apply(lambda x: re.sub(r'\
 calzada_separada = data['desc_tipo_calzada'].str.get_dummies(sep=',')
 calzada_counts = calzada_separada.sum().sort_values(ascending=False)
 
+
 # gráfico de barras
+
 fig = px.bar(x=calzada_counts.index, y=calzada_counts.values,
              labels={'x': 'Tipo de calzada', 'y': 'Cantidad de siniestros'},
              title='Siniestros por tipo de calzada')
@@ -375,13 +404,17 @@ for i in range(len(calzada_counts)):
                        yshift=13)
 
 fig.update_layout(title_x=0.40)
+
 columns[0].plotly_chart(fig, use_container_width=True)
 
 # grafico de torta con porcentajes
+
 porcentajes = (calzada_counts / calzada_counts.sum()) * 100
 fig = px.pie(names=porcentajes.index, values=porcentajes.values,
              title='Porcentaje de siniestros por tipo de calzada')
 fig.update_layout(title_x=0.40)
+
 columns[1].plotly_chart(fig, use_container_width=True)
+
 
 

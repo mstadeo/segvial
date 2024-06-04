@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
+
 import numpy as np
 
 st.set_page_config(page_title="Calidad de datos", page_icon="📈", layout="wide")
@@ -250,6 +251,7 @@ if columna_seleccionada:
 
 # tercera sección
 st.header("Comparación columna 'Total' y suma de involucrados")
+
 st.markdown("Histograma y scatterplot con el fin de comparar los valores de la columna *total* y la suma de *heridos_leves*, *heridos_graves*, *heridos_gravisimos*, *ilesos* y *fallecidos*.")
 columns = st.columns(2)
 
@@ -258,13 +260,16 @@ fig = px.histogram(data, x = 'diferencias_totales',
                    labels = {'diferencias_totales': 'Diferencias'}, 
                    title='Histograma de diferencias')
 fig.update_yaxes(title_text='Cantidad de siniestros') # etiqueta eje y
+
 fig.update_layout(title_x=0.35)
+
 columns[0].plotly_chart(fig)
 
 data['suma_involucrados'] = data[['heridos_leves', 'heridos_graves', 'heridos_gravisimos', 'ilesos', 'fallecidos']].sum(axis = 1)
 fig = px.scatter(data, x='total', y='suma_involucrados', 
                  labels={'total': 'Total', 'suma_involucrados': 'Suma de Involucrados'}, 
                  title='Total vs Suma de Involucrados')
+
 fig.update_layout(title_x=0.35)
 columns[1].plotly_chart(fig)
 
@@ -303,3 +308,4 @@ fig = px.bar(forma_geocod_counts, y='Cantidad de siniestros', x='Resultados',  t
 fig.update_layout(title_x=0.25)
 fig.update_traces(textposition='outside')
 columns[1].plotly_chart(fig)
+
