@@ -46,6 +46,10 @@ with col2:
 start_date = pd.to_datetime(start_date)  # convierto a datetime64
 end_date = pd.to_datetime(end_date)
 
+if end_date < start_date: # validar que la fecha final no sea anterior a la inicial
+    st.error("La fecha inicial no puede ser posterior a la fecha final.")
+    st.stop()
+
 def create_map(gdf, lat, lon, zoom_start, radius): 
     '''Crea el mapa de Rosario con la latitud y longitud ingresada'''
     m = folium.Map(location=[lat, lon], zoom_start=zoom_start)
@@ -454,4 +458,41 @@ fig.update_layout(title_x=0.40)
 columns[1].plotly_chart(fig, use_container_width=True)
 
 
+# FILA 10 --> CALLES CON MAYOR SINIESTRALIDAD
+st.subheader('Calles con mayor siniestralidad')
+columns = st.columns(2)
 
+df = data_filtered[data_filtered['calles_osm'] != 'error'] # filtro los siniestros que dieron error al geocodificar
+df['calles_osm'] = df['calles_osm'].str.split(';') # los siniestros en intersecciones están separados por ;
+
+df = df.explode('calles_osm')
+df['calles_osm'] = df['calles_osm'].apply(lambda x: re.sub(r'\d+$', '', x).strip() if isinstance(x, str) else '') # elimino la numeración de las direc puntuales
+df = df[df['calles_osm'] != ''] # elimino las filas con calles vacías
+
+calles_frecuencia = df['calles_osm'].value_counts() # cuento la frecuencia de cada calle
+top_20_calles = calles_frecuencia.head(20).reset_index() # selecciono 20 calles más frecuentes
+top_20_calles.columns = ['calle', 'frecuencia']
+top_20_calles = top_20_calles.sort_values(by='frecuencia', ascending=True) # ordeno de manera descendente
+
+fig = px.bar(top_20_calles, 
+             x='frecuencia', 
+             y='calle', 
+             orientation='h',
+             labels={'frecuencia': 'Cantidad de siniestros', 'calle': 'Calle'},
+             title='Ranking 20 calles con mayor siniestralidad',
+             color='frecuencia', 
+             color_continuous_scale='blues',
+             range_color=[top_20_calles['frecuencia'].min(), top_20_calles['frecuencia'].max()])
+
+for i, valor in enumerate(top_20_calles['frecuencia']):
+    fig.add_annotation(
+        x=valor,
+        y=top_20_calles['calle'].iloc[i],
+        text=str(valor),
+        showarrow=False,
+        font=dict(size=12),
+        xshift=16
+    )
+
+fig.update_layout(showlegend=False, coloraxis_showscale=False, title_x=0.4, height=600)
+columns[0].plotly_chart(fig)

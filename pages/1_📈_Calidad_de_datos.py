@@ -5,7 +5,7 @@ import numpy as np
 
 st.set_page_config(page_title="Calidad de datos", page_icon="📈", layout="wide")
 st.title("📈 Calidad de datos")
-st.set_option('deprecation.showPyplotGlobalUse', False)
+#st.set_option('deprecation.showPyplotGlobalUse', False)
 pd.set_option('display.width', 0)
 
 data_total = pd.read_csv("data_final.csv")
